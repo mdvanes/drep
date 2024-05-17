@@ -20,14 +20,9 @@ Requires an openapi-config.ts in de root of directory.
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g @mdworld/drep
-$ drep COMMAND
+$ npm i -D @mdworld/drep
+$ npx drep run
 running command...
-$ drep (--version)
-@mdworld/drep/0.0.0 darwin-arm64 node-v20.12.2
-$ drep --help [COMMAND]
-USAGE
-  $ drep COMMAND
 ...
 ```
 <!-- usagestop -->
@@ -398,3 +393,10 @@ DESCRIPTION
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.0.21/src/commands/plugins/update.ts)_
 <!-- commandsstop -->
+
+# Development
+
+```
+npm run build && ./bin/run.js run
+npm publish --access=public
+```

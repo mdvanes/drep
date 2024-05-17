@@ -1,10 +1,10 @@
 {
   "name": "@mdworld/drep",
   "description": "Deduplicate RTKQ EndPoints",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "M.D. van Es",
   "bin": {
-    "drep": "./bin/run.js"
+    "drep": "bin/run.js"
   },
   "bugs": "https://github.com/mdvanes/drep/issues",
   "dependencies": {
@@ -59,13 +59,16 @@
       }
     }
   },
-  "repository": "mdvanes/drep",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdvanes/drep.git"
+  },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
-    "prepack": "oclif manifest && oclif readme",
+    "prepack1": "oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },

@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { readFileSync } from 'node:fs';
-import * as ts from 'typescript';
+import ts from 'typescript';
 
 // import config from './openapi-config.js';
 
