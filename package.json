@@ -1,7 +1,7 @@
 {
   "name": "@mdworld/drep",
   "description": "Deduplicate RTKQ EndPoints",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "M.D. van Es",
   "bin": {
     "drep": "bin/run.js"
@@ -10,7 +10,8 @@
   "dependencies": {
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
-    "@oclif/plugin-plugins": "^5"
+    "@oclif/plugin-plugins": "^5",
+    "ts-morph": "^22.0.0"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
@@ -26,7 +27,6 @@
     "mocha": "^10",
     "oclif": "^4",
     "shx": "^0.3.3",
-    "ts-morph": "^22.0.0",
     "ts-node": "^10",
     "typescript": "^5"
   },
