@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import ts from 'typescript';
 import { Project, ScriptTarget, ObjectLiteralExpression, PropertyAssignment } from 'ts-morph';
 
@@ -81,11 +81,14 @@ const getHookNamesForFileName = (fileName: string): [string, string[]] => {
   return getHookNamesForSourceFile(fileName, sourceFile);
 };
 
-const getIgnoreList = () => {
-  // TODO make .drepignore optional
-  // const ignoreListContent = readFileSync(`${__dirname}/check-duplicate-rtkq-names-ignore`, 'utf8');
-  const ignoreListContent = readFileSync(`./.drepignore`, 'utf8');
-  return ignoreListContent.split('\n');
+const getIgnoreList = (): string[] => {
+  const ignoreListPath = './.drepignore';
+  const existsIgnoreList = existsSync(ignoreListPath);
+  if (!existsIgnoreList) {
+    return [];
+  }
+  const ignoreListContent = readFileSync(ignoreListPath, 'utf8');
+  return ignoreListContent.split('\n').filter(line => !line.startsWith('#'));
 };
 
 const ignoreList = getIgnoreList();
@@ -190,14 +193,14 @@ export const checkDuplicateRtkqNames = async () => {
   if (hooknamesAndDuplicates.ignoredDuplicate.length > 0) {
     console.error(
       `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.duplicate.length} ignored duplicate endpoint name(s) found!`)}
-    ${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
+${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
     );
   }
 
   if (hooknamesAndDuplicates.duplicate.length > 0) {
     console.error(
       `${chalk.red(`ERROR: ${hooknamesAndDuplicates.duplicate.length} duplicate endpoint name(s) found!`)}
-  ${hooknamesAndDuplicates.duplicate.join('\n')}`
+${hooknamesAndDuplicates.duplicate.join('\n')}`
     );
     process.exit(1);
   }
