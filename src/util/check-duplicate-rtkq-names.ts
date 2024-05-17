@@ -119,9 +119,8 @@ const getOutputFiles = () => {
   // const x = sourceFile1?.getVariableDeclaration('config');
   // console.log('x', sourceFile1?.getText());
   const configPath = './openapi-config.ts';
-  project.addSourceFileAtPath('./openapi-config.ts');
-  const sourceFile1 = project.getSourceFileOrThrow('./openapi-config.ts');
-  // // const sourceFile1 = project.getSourceFiles('/Documents/repos/drep/*.ts');
+  project.addSourceFileAtPath(configPath);
+  const sourceFile1 = project.getSourceFileOrThrow(configPath);
 
   const configVar = sourceFile1?.getVariableDeclarationOrThrow('config');
   const outputFiles = configVar
@@ -129,41 +128,47 @@ const getOutputFiles = () => {
     .getProperties()
     .find(prop => (prop as PropertyAssignment).getName() === 'outputFiles');
 
-  const y = (outputFiles as PropertyAssignment).getInitializerIfKindOrThrow(ts.SyntaxKind.ObjectLiteralExpression);
+  const outputFilesObject = (outputFiles as PropertyAssignment).getInitializerIfKindOrThrow(ts.SyntaxKind.ObjectLiteralExpression);
+  const outputFileNames = outputFilesObject.getProperties().map(outputFileEntry => {
+    // const m = (outputFileEntry as PropertyAssignment).getInitializerIfKindOrThrow(ts.SyntaxKind.ObjectLiteralExpression);
+    // console.log('m', (outputFileEntry as PropertyAssignment).getName());
+    return (outputFileEntry as PropertyAssignment).getName().slice(1, -1);
+  });
+  // console.log(
+  //   'x',
+  //   // outputFiles?.print(),
+  //   // outputFiles?.getKindName(),
+  //   outputFileNames
+  //   // y.getProperties().map(p => p.print())
+  // );
+  return outputFileNames;
 
-  console.log(
-    'x',
-    outputFiles?.print(),
-    outputFiles?.getKindName(),
-    y.getProperties().map(p => p.print())
-  );
+  // const sourceFile = ts.createSourceFile(
+  //   configPath,
+  //   readFileSync(configPath, 'utf8').toString(),
+  //   ts.ScriptTarget.ES2015,
+  //   /* setParentNodes */ true
+  // );
 
-  const sourceFile = ts.createSourceFile(
-    configPath,
-    readFileSync(configPath, 'utf8').toString(),
-    ts.ScriptTarget.ES2015,
-    /* setParentNodes */ true
-  );
+  // // TODO instead of finding by fixed indexes, traverse and look for config.outputFiles
+  // const configNode = sourceFile.getChildAt(0).getChildAt(0).getChildAt(0).getChildAt(1).getChildAt(0);
+  // const outputFilesNode = configNode.getChildAt(2).getChildAt(1).getChildAt(6);
+  // const outputFilesValueNode = outputFilesNode.getChildAt(2).getChildAt(1);
+  // // const x = outputFilesNode.getChildCount();
+  // // console.log('x:', x);
 
-  // TODO instead of finding by fixed indexes, traverse and look for config.outputFiles
-  const configNode = sourceFile.getChildAt(0).getChildAt(0).getChildAt(0).getChildAt(1).getChildAt(0);
-  const outputFilesNode = configNode.getChildAt(2).getChildAt(1).getChildAt(6);
-  const outputFilesValueNode = outputFilesNode.getChildAt(2).getChildAt(1);
-  // const x = outputFilesNode.getChildCount();
-  // console.log('x:', x);
-
-  return outputFilesValueNode
-    .getChildren()
-    .map(node => {
-      if (ts.isVariableStatement(node)) {
-        // console.log('x', x.getChildAt(0).getChildAt(0).getText());
-      }
-      // console.log(x.getChildren().map(n => n.getChildAt(0)?.getText()));
-      // return node.getChildAt(2)?.getChildren()?.map(n => n.getChildAt(2)?.getChildAt(2)?.getText());
-      return node.getChildAt(0)?.getText();
-    })
-    .filter(isDefined)
-    .map(name => name.slice(1, -1));
+  // return outputFilesValueNode
+  //   .getChildren()
+  //   .map(node => {
+  //     if (ts.isVariableStatement(node)) {
+  //       // console.log('x', x.getChildAt(0).getChildAt(0).getText());
+  //     }
+  //     // console.log(x.getChildren().map(n => n.getChildAt(0)?.getText()));
+  //     // return node.getChildAt(2)?.getChildren()?.map(n => n.getChildAt(2)?.getChildAt(2)?.getText());
+  //     return node.getChildAt(0)?.getText();
+  //   })
+  //   .filter(isDefined)
+  //   .map(name => name.slice(1, -1));
 };
 
 // TODO downpass log instead of using console.log
