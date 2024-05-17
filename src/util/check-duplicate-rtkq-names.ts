@@ -11,6 +11,8 @@ type HooknamesAndDuplicates = {
   origins: Record<string, string>;
 };
 
+const isDefined = <T>(item: T | undefined): item is T => typeof item !== 'undefined';
+
 const isApiExportNode = (n: ts.Node): n is ts.VariableStatement =>
   n.kind === ts.SyntaxKind.VariableStatement && n.getText().includes(' injectedRtkApi;');
 
@@ -46,7 +48,7 @@ const getHookNamesForFileName = (fileName: string): [string, string[]] => {
 };
 
 const getIgnoreList = () => {
-  // TODO fix
+  // TODO make .drepignore optional
   // const ignoreListContent = readFileSync(`${__dirname}/check-duplicate-rtkq-names-ignore`, 'utf8');
   const ignoreListContent = readFileSync(`./.drepignore`, 'utf8');
   return ignoreListContent.split('\n');
@@ -79,33 +81,74 @@ const reduceDuplicates = (acc: HooknamesAndDuplicates, next: [string, string[]])
   };
 };
 
+const getOutputFiles = () => {
+  const configPath = './openapi-config.ts';
+  const sourceFile = ts.createSourceFile(
+    configPath,
+    readFileSync(configPath, 'utf8').toString(),
+    ts.ScriptTarget.ES2015,
+    /* setParentNodes */ true
+  );
+
+  // TODO instead of finding by fixed indexes, traverse and look for config.outputFiles
+  const configNode = sourceFile.getChildAt(0).getChildAt(0).getChildAt(0).getChildAt(1).getChildAt(0);
+  const outputFilesNode = configNode.getChildAt(2).getChildAt(1).getChildAt(6);
+  const outputFilesValueNode = outputFilesNode.getChildAt(2).getChildAt(1);
+  // const x = outputFilesNode.getChildCount();
+  // console.log('x:', x);
+
+  return outputFilesValueNode
+    .getChildren()
+    .map(node => {
+      if (ts.isVariableStatement(node)) {
+        // console.log('x', x.getChildAt(0).getChildAt(0).getText());
+      }
+      // console.log(x.getChildren().map(n => n.getChildAt(0)?.getText()));
+      return node.getChildAt(0)?.getText();
+    })
+    .filter(isDefined)
+    .map(name => name.slice(1, -1));
+};
+
+// TODO downpass log instead of using console.log
 export const checkDuplicateRtkqNames = async () => {
-  const config = (await import('./openapi-config.js')) as any;
-  const outputFiles = config.default.outputFiles;
+  // const config = (await import(`../../openapi-config.ts${''}`));
+  // const outputFiles = config.default.outputFiles;
+
+  // const ignoreListContent = readFileSync(`./.drepignore`, 'utf8');
+
+  // const program = ts.createProgram([sourceFile.fileName], {});
+  // const x = program.emit();
+  // x.
+  // console.log(program.emit());
+
+  const outputFiles = getOutputFiles();
+  console.log(outputFiles);
 
   const generatedFiles = Object.entries(outputFiles).map(([outputFileName]) => outputFileName);
+  console.log(generatedFiles);
 
-  const hooknamesByFileName = generatedFiles.map(getHookNamesForFileName);
+  // const hooknamesByFileName = generatedFiles.map(getHookNamesForFileName);
 
-  const hooknamesAndDuplicates = hooknamesByFileName.reduce<HooknamesAndDuplicates>(reduceDuplicates, {
-    all: [],
-    duplicate: [],
-    ignoredDuplicate: [],
-    origins: {},
-  });
+  // const hooknamesAndDuplicates = hooknamesByFileName.reduce<HooknamesAndDuplicates>(reduceDuplicates, {
+  //   all: [],
+  //   duplicate: [],
+  //   ignoredDuplicate: [],
+  //   origins: {},
+  // });
 
-  if (hooknamesAndDuplicates.ignoredDuplicate.length > 0) {
-    console.error(
-      `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.duplicate.length} ignored duplicate endpoint name(s) found!`)}
-    ${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
-    );
-  }
+  // if (hooknamesAndDuplicates.ignoredDuplicate.length > 0) {
+  //   console.error(
+  //     `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.duplicate.length} ignored duplicate endpoint name(s) found!`)}
+  //   ${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
+  //   );
+  // }
 
-  if (hooknamesAndDuplicates.duplicate.length > 0) {
-    console.error(
-      `${chalk.red(`ERROR: ${hooknamesAndDuplicates.duplicate.length} duplicate endpoint name(s) found!`)}
-  ${hooknamesAndDuplicates.duplicate.join('\n')}`
-    );
-    process.exit(1);
-  }
+  // if (hooknamesAndDuplicates.duplicate.length > 0) {
+  //   console.error(
+  //     `${chalk.red(`ERROR: ${hooknamesAndDuplicates.duplicate.length} duplicate endpoint name(s) found!`)}
+  // ${hooknamesAndDuplicates.duplicate.join('\n')}`
+  //   );
+  //   process.exit(1);
+  // }
 };
