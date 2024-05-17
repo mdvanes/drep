@@ -1,7 +1,7 @@
 {
   "name": "@mdworld/drep",
   "description": "Deduplicate RTKQ EndPoints",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "M.D. van Es",
   "bin": {
     "drep": "bin/run.js"
@@ -26,6 +26,7 @@
     "mocha": "^10",
     "oclif": "^4",
     "shx": "^0.3.3",
+    "ts-morph": "^22.0.0",
     "ts-node": "^10",
     "typescript": "^5"
   },

@@ -1,6 +1,40 @@
 import chalk from 'chalk';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
+import { Project, ScriptTarget, ObjectLiteralExpression, PropertyAssignment } from 'ts-morph';
+
+const project = new Project();
+
+// const project = new Project({
+//   compilerOptions: {
+//     // rootDir: '.',
+//     target: ScriptTarget.ES2015,
+//   },
+// });
+
+// const project = new Project({
+//   resolutionHost: (moduleResolutionHost, getCompilerOptions) => {
+//     return {
+//       resolveModuleNames: (moduleNames, containingFile) => {
+//         console.log(moduleNames);
+//         const compilerOptions = getCompilerOptions();
+//         const resolvedModules: ts.ResolvedModule[] = [];
+
+//         for (const moduleName of moduleNames.map(removeTsExtension)) {
+//           const result = ts.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
+//           if (result.resolvedModule) resolvedModules.push(result.resolvedModule);
+//         }
+
+//         return resolvedModules;
+//       },
+//     };
+
+//     function removeTsExtension(moduleName: string) {
+//       if (moduleName.slice(-3).toLowerCase() === '.ts') return moduleName.slice(0, -3);
+//       return moduleName;
+//     }
+//   },
+// });
 
 // import config from './openapi-config.js';
 
@@ -82,7 +116,28 @@ const reduceDuplicates = (acc: HooknamesAndDuplicates, next: [string, string[]])
 };
 
 const getOutputFiles = () => {
+  // const x = sourceFile1?.getVariableDeclaration('config');
+  // console.log('x', sourceFile1?.getText());
   const configPath = './openapi-config.ts';
+  project.addSourceFileAtPath('./openapi-config.ts');
+  const sourceFile1 = project.getSourceFileOrThrow('./openapi-config.ts');
+  // // const sourceFile1 = project.getSourceFiles('/Documents/repos/drep/*.ts');
+
+  const configVar = sourceFile1?.getVariableDeclarationOrThrow('config');
+  const outputFiles = configVar
+    ?.getInitializerIfKindOrThrow(ts.SyntaxKind.ObjectLiteralExpression)
+    .getProperties()
+    .find(prop => (prop as PropertyAssignment).getName() === 'outputFiles');
+
+  const y = (outputFiles as PropertyAssignment).getInitializerIfKindOrThrow(ts.SyntaxKind.ObjectLiteralExpression);
+
+  console.log(
+    'x',
+    outputFiles?.print(),
+    outputFiles?.getKindName(),
+    y.getProperties().map(p => p.print())
+  );
+
   const sourceFile = ts.createSourceFile(
     configPath,
     readFileSync(configPath, 'utf8').toString(),
@@ -104,6 +159,7 @@ const getOutputFiles = () => {
         // console.log('x', x.getChildAt(0).getChildAt(0).getText());
       }
       // console.log(x.getChildren().map(n => n.getChildAt(0)?.getText()));
+      // return node.getChildAt(2)?.getChildren()?.map(n => n.getChildAt(2)?.getChildAt(2)?.getText());
       return node.getChildAt(0)?.getText();
     })
     .filter(isDefined)
@@ -112,43 +168,32 @@ const getOutputFiles = () => {
 
 // TODO downpass log instead of using console.log
 export const checkDuplicateRtkqNames = async () => {
-  // const config = (await import(`../../openapi-config.ts${''}`));
-  // const outputFiles = config.default.outputFiles;
+  // project.addSourceFileAtPath('./openapi-config.ts');
+  // console.log(project.getRootDirectories(), project.getDirectories(), project.getFileSystem());
 
-  // const ignoreListContent = readFileSync(`./.drepignore`, 'utf8');
+  const generatedFiles = getOutputFiles();
 
-  // const program = ts.createProgram([sourceFile.fileName], {});
-  // const x = program.emit();
-  // x.
-  // console.log(program.emit());
+  const hooknamesByFileName = generatedFiles.map(getHookNamesForFileName);
 
-  const outputFiles = getOutputFiles();
-  console.log(outputFiles);
+  const hooknamesAndDuplicates = hooknamesByFileName.reduce<HooknamesAndDuplicates>(reduceDuplicates, {
+    all: [],
+    duplicate: [],
+    ignoredDuplicate: [],
+    origins: {},
+  });
 
-  const generatedFiles = Object.entries(outputFiles).map(([outputFileName]) => outputFileName);
-  console.log(generatedFiles);
+  if (hooknamesAndDuplicates.ignoredDuplicate.length > 0) {
+    console.error(
+      `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.duplicate.length} ignored duplicate endpoint name(s) found!`)}
+    ${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
+    );
+  }
 
-  // const hooknamesByFileName = generatedFiles.map(getHookNamesForFileName);
-
-  // const hooknamesAndDuplicates = hooknamesByFileName.reduce<HooknamesAndDuplicates>(reduceDuplicates, {
-  //   all: [],
-  //   duplicate: [],
-  //   ignoredDuplicate: [],
-  //   origins: {},
-  // });
-
-  // if (hooknamesAndDuplicates.ignoredDuplicate.length > 0) {
-  //   console.error(
-  //     `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.duplicate.length} ignored duplicate endpoint name(s) found!`)}
-  //   ${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
-  //   );
-  // }
-
-  // if (hooknamesAndDuplicates.duplicate.length > 0) {
-  //   console.error(
-  //     `${chalk.red(`ERROR: ${hooknamesAndDuplicates.duplicate.length} duplicate endpoint name(s) found!`)}
-  // ${hooknamesAndDuplicates.duplicate.join('\n')}`
-  //   );
-  //   process.exit(1);
-  // }
+  if (hooknamesAndDuplicates.duplicate.length > 0) {
+    console.error(
+      `${chalk.red(`ERROR: ${hooknamesAndDuplicates.duplicate.length} duplicate endpoint name(s) found!`)}
+  ${hooknamesAndDuplicates.duplicate.join('\n')}`
+    );
+    process.exit(1);
+  }
 };
