@@ -7,7 +7,7 @@ export default class Run extends Command {
     file: Args.string({ description: 'file to read' }),
   };
 
-  static override description = 'describe the command here';
+  static override description = 'Find duplicate Redux Toolkit Query endpoints.';
 
   static override examples = ['<%= config.bin %> <%= command.id %>'];
 
@@ -21,7 +21,7 @@ export default class Run extends Command {
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Run);
 
-    checkDuplicateRtkqNames();
+    checkDuplicateRtkqNames({ log: this.log, logToStderr: this.logToStderr });
 
     // const name = flags.name ?? 'world';
     this.log(drepArt);
