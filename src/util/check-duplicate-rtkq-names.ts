@@ -192,7 +192,7 @@ export const checkDuplicateRtkqNames = async () => {
 
   if (hooknamesAndDuplicates.ignoredDuplicate.length > 0) {
     console.error(
-      `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.duplicate.length} ignored duplicate endpoint name(s) found!`)}
+      `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.ignoredDuplicate.length} ignored duplicate endpoint name(s) found!`)}
 ${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
     );
   }

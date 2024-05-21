@@ -1,7 +1,7 @@
 {
   "name": "@mdworld/drep",
   "description": "Deduplicate RTKQ EndPoints",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "author": "M.D. van Es",
   "bin": {
     "drep": "bin/run.js"

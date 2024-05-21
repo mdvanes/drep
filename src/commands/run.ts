@@ -1,5 +1,6 @@
 import { Args, Command, Flags } from '@oclif/core';
 import { checkDuplicateRtkqNames } from '../util/check-duplicate-rtkq-names.js';
+import { drepArt, drepTagline } from '../util/drep-art.js';
 
 export default class Run extends Command {
   static override args = {
@@ -23,7 +24,8 @@ export default class Run extends Command {
     checkDuplicateRtkqNames();
 
     // const name = flags.name ?? 'world';
-    this.log(`DREP : ./drep/src/commands/run.ts`);
+    this.log(drepArt);
+    this.log(drepTagline);
     if (args.file && flags.force) {
       this.log(`you input --force and --file: ${args.file}`);
     }
