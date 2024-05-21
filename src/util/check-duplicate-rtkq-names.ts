@@ -1,10 +1,7 @@
-import { Command } from '@oclif/core';
 import chalk from 'chalk';
 import { existsSync, readFileSync } from 'node:fs';
 import { Project, PropertyAssignment } from 'ts-morph';
 import ts from 'typescript';
-
-const project = new Project();
 
 type HooknamesAndDuplicates = {
   all: string[];
@@ -12,6 +9,17 @@ type HooknamesAndDuplicates = {
   ignoredDuplicate: string[];
   origins: Record<string, string>;
 };
+
+type FpLoggerFn = (...args: string[]) => void;
+
+export interface FpLogger {
+  log: FpLoggerFn;
+  warn: FpLoggerFn;
+  error: FpLoggerFn;
+  logToStderr: FpLoggerFn;
+}
+
+const project = new Project();
 
 const isApiExportNode = (n: ts.Node): n is ts.VariableStatement =>
   n.kind === ts.SyntaxKind.VariableStatement && n.getText().includes(' injectedRtkApi;');
@@ -103,7 +111,7 @@ const getOutputFiles = () => {
   return outputFileNames;
 };
 
-export const checkDuplicateRtkqNames = async ({ log }: { log: Command['log']; logToStderr: Command['logToStderr'] }) => {
+export const checkDuplicateRtkqNames = async ({ warn, logToStderr }: FpLogger) => {
   const generatedFiles = getOutputFiles();
 
   const hooknamesByFileName = generatedFiles.map(getHookNamesForFileName);
@@ -116,14 +124,14 @@ export const checkDuplicateRtkqNames = async ({ log }: { log: Command['log']; lo
   });
 
   if (hooknamesAndDuplicates.ignoredDuplicate.length > 0) {
-    log(
+    warn(
       `${chalk.yellow(`WARNING: ${hooknamesAndDuplicates.ignoredDuplicate.length} ignored duplicate endpoint name(s) found!`)}
 ${hooknamesAndDuplicates.ignoredDuplicate.join('\n')}`
     );
   }
 
   if (hooknamesAndDuplicates.duplicate.length > 0) {
-    log(
+    logToStderr(
       `${chalk.red(`ERROR: ${hooknamesAndDuplicates.duplicate.length} duplicate endpoint name(s) found!`)}
 ${hooknamesAndDuplicates.duplicate.join('\n')}`
     );

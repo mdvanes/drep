@@ -1,33 +1,23 @@
-import { Args, Command, Flags } from '@oclif/core';
-import { checkDuplicateRtkqNames } from '../util/check-duplicate-rtkq-names.js';
+import { Command } from '@oclif/core';
+import { FpLogger, checkDuplicateRtkqNames } from '../util/check-duplicate-rtkq-names.js';
 import { drepArt, drepTagline } from '../util/drep-art.js';
 
 export default class Run extends Command {
-  static override args = {
-    file: Args.string({ description: 'file to read' }),
-  };
-
   static override description = 'Find duplicate Redux Toolkit Query endpoints.';
 
   static override examples = ['<%= config.bin %> <%= command.id %>'];
 
-  static override flags = {
-    // flag with no value (-f, --force)
-    force: Flags.boolean({ char: 'f' }),
-    // flag with a value (-n, --name=VALUE)
-    name: Flags.string({ char: 'n', description: 'name to print' }),
-  };
-
   public async run(): Promise<void> {
-    const { args, flags } = await this.parse(Run);
-
-    checkDuplicateRtkqNames({ log: this.log, logToStderr: this.logToStderr });
-
-    // const name = flags.name ?? 'world';
     this.log(drepArt);
     this.log(drepTagline);
-    if (args.file && flags.force) {
-      this.log(`you input --force and --file: ${args.file}`);
-    }
+
+    const fpLogger: FpLogger = {
+      log: (...args: string[]) => this.log(...args),
+      warn: (...args: string[]) => this.log(...args),
+      error: (...args: string[]) => this.log(...args),
+      logToStderr: (...args: string[]) => this.log(...args),
+    };
+
+    checkDuplicateRtkqNames(fpLogger);
   }
 }
